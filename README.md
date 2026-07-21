@@ -1,4 +1,4 @@
-## foli
+## foliX
 
 A local file player designed to look sexy, extremely minimal, and very awesome.
 
