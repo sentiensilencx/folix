@@ -7,7 +7,14 @@ A local file player designed to look sexy, extremely minimal, and very awesome.
 PS: This is explicitly for my own personal use, so I will NOT be taking contributions. **Do NOT contribute** or submit a PR to this project, if you want to change it, or make it your own, just *fork it* and commit heinous crimes with the codebase <3. Thank you for taking the time to read this.
   
   <img src="folix-in-a-nutshell.png" />
-  
+
+## controls
+ctrl+y/cmd+y to open the control centre, can be used for fuzzy search
+
+alt+y to loop one playlist indefinitely, alt+y twice to loop one song indefinitely
+
+
+
 ## This project is open source under the Apache 2.0 License. 
 Feel free to do whatever the fuck you want with it, just credit me somewhere. Please credit me.
 
