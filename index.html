@@ -153,12 +153,62 @@ input[type=range].vol::-webkit-slider-thumb { -webkit-appearance: none; width: 7
 #trackList li.empty .tname { font-family: monospace; font-size: 11px; color: #484440; font-style: italic; }
 #trackList li.empty:hover .tname { color: #847870; }
 
+/* ── command panel (ctrl+y) ── */
+.cmdp-overlay {
+  display: flex; position: fixed; inset: 0;
+  background: rgba(0,0,0,0.6); z-index: 150;
+  align-items: flex-start; justify-content: center;
+  padding-top: 12vh;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+.cmdp-overlay.show { opacity: 1; pointer-events: auto; }
+.cmdp-box {
+  background: #161412; border: 0.5px solid #2e2b27; border-radius: 6px;
+  width: 520px; max-width: 90%; max-height: 60vh;
+  display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+  transform: translateY(-8px) scale(0.97);
+  transition: transform 0.18s cubic-bezier(0.16,1,0.3,1);
+}
+.cmdp-overlay.show .cmdp-box { transform: translateY(0) scale(1); }
+.cmdp-inputrow {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 18px; border-bottom: 0.5px solid #222018; flex-shrink: 0;
+}
+.cmdp-prompt { font-size: 11px; color: #555048; white-space: nowrap; }
+.cmdp-prompt .hi { color: #847870; }
+.cmdp-input {
+  flex: 1; background: none; border: none; outline: none;
+  font-family: inherit; font-size: 12px; color: #c8c2b6;
+}
+.cmdp-input::placeholder { color: #444038; }
+.cmdp-label { padding: 12px 18px 6px; margin-bottom: 0; flex-shrink: 0; }
+.cmdp-results { list-style: none; overflow-y: auto; padding: 0 8px 8px; }
+.cmdp-results::-webkit-scrollbar { width: 2px; }
+.cmdp-results::-webkit-scrollbar-thumb { background: #2e2b27; }
+.cmdp-item {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 8px 10px; border-radius: 3px; cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+}
+.cmdp-item .tname { font-family: 'Della Respira', Georgia, serif; font-size: 14px; color: #706860; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cmdp-item .tart { font-size: 10px; color: #5a5550; white-space: nowrap; }
+.cmdp-item .qbadge { font-size: 8px; letter-spacing: 0.04em; color: #847870; border: 0.5px solid #3a3732; border-radius: 2px; padding: 1px 5px; text-transform: uppercase; flex-shrink: 0; }
+.cmdp-item:hover, .cmdp-item.sel { background: #1a1815; }
+.cmdp-item:hover .tname, .cmdp-item.sel .tname { color: #d4cfc5; }
+.cmdp-item.sel .idx, .cmdp-item.sel .tart { color: #847870; }
+.cmdp-empty { padding: 16px 10px; font-size: 11px; color: #484440; font-style: italic; text-align: center; }
+.cmdp-hint { padding: 8px 18px; border-top: 0.5px solid #222018; font-size: 10px; color: #484440; text-align: center; flex-shrink: 0; }
+
 /* ── bottombar ── */
 .bottombar { border-top: 0.5px solid #222018; padding: 9px 24px; display: flex; justify-content: space-between; align-items: center; background: #0f0e0c; font-size: 10px; color: #484440; }
 #nextUp { font-style: italic; font-family: 'Della Respira', Georgia, serif; color: #6a6258; }
 #fileInput { display: none; }
 .right-hints { display: flex; align-items: center; gap: 10px; }
 .drop-hint { color: #3a3732; transition: color 0.15s; }
+.loop-ind { display: none; color: #847870; }
+.loop-ind.show { display: inline; }
 #app.drag-active .drop-hint { color: #c0b8a8; }
 #app.drag-active { outline: 1px dashed #5a5550; outline-offset: -1px; }
 #app.drag-active .art-ph { border-color: #847870; color: #b0a898; }
@@ -216,7 +266,7 @@ input[type=range].vol::-webkit-slider-thumb { -webkit-appearance: none; width: 7
 
   <div class="bottombar">
     <span>next — <span id="nextUp">nothing queued</span></span>
-    <span class="right-hints"><span id="dropHint" class="drop-hint">drop tracks or folders to add</span><span id="queueCount"></span></span>
+    <span class="right-hints"><span id="loopIndicator" class="loop-ind"></span><span id="dropHint" class="drop-hint">drop tracks or folders to add</span><span id="queueCount"></span></span>
   </div>
 </div>
 <input type="file" id="fileInput" accept="audio/*" multiple onchange="loadFiles(this.files)"/>
@@ -234,6 +284,19 @@ input[type=range].vol::-webkit-slider-thumb { -webkit-appearance: none; width: 7
 
 <!-- track right-click menu -->
 <div class="ctx-menu" id="trackCtxMenu"></div>
+
+<!-- command panel (ctrl+y) -->
+<div class="cmdp-overlay" id="cmdOverlay">
+  <div class="cmdp-box">
+    <div class="cmdp-inputrow">
+      <span class="cmdp-prompt">hazel<span class="hi">@foli</span>:~$</span>
+      <input type="text" id="cmdInput" class="cmdp-input" placeholder="jump to track..." autocomplete="off" spellcheck="false"/>
+    </div>
+    <div class="section-label cmdp-label">// jump to track</div>
+    <ul id="cmdResults" class="cmdp-results"></ul>
+    <div class="cmdp-hint">↑↓ navigate &nbsp;·&nbsp; ⏎ play &nbsp;·&nbsp; esc close</div>
+  </div>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jsmediatags/3.9.5/jsmediatags.min.js"></script>
 <script>
@@ -263,6 +326,8 @@ let activeQ = 0;
 let manualQueue = [];       // spotify-style "play next" queue — independent of playlists
 let queueUid = 1;
 let nowPlayingUid = null;   // uid of whatever track is currently loaded/playing
+let lastPlayedEntry = null; // entry object of whatever was last handed to playEntry()
+let loopMode = 'none';      // 'none' | 'playlist' | 'track'
 
 // ── audio ──
 let audioCtx, analyser, gainNode;
@@ -372,12 +437,17 @@ audioEl.addEventListener('timeupdate', () => {
 audioEl.addEventListener('ended', () => {
   playing = false; document.getElementById('playBtn').textContent = '[ play ]';
   cancelAnimationFrame(animFrame); startDecay();
+  if (loopMode === 'track' && lastPlayedEntry) {
+    setTimeout(() => playEntry(lastPlayedEntry), 300);
+    return;
+  }
   if (manualQueue.length) {
     setTimeout(() => playFromManualQueue(), 600);
     return;
   }
   const q = queues[activeQ];
   if (q.currentIdx < q.tracks.length-1) setTimeout(() => playIndex(q.currentIdx+1), 600);
+  else if (loopMode === 'playlist' && q.tracks.length) setTimeout(() => playIndex(0), 600);
 });
 document.getElementById('progTrack').addEventListener('click', e => {
   if (!audioEl.src) return;
@@ -540,6 +610,7 @@ function updateBottomBar() {
 // ── playback ──
 function playEntry(entry) {
   nowPlayingUid = entry._uid;
+  lastPlayedEntry = entry;
   audioEl.src = entry.url; audioEl.load();
   document.getElementById('trackTitle').textContent = entry.title || entry.name;
   document.getElementById('trackSub').textContent = [entry.artist, entry.album].filter(Boolean).join(' · ') || '—';
@@ -551,7 +622,23 @@ function playEntry(entry) {
   initAudio();
   if (audioCtx.state === 'suspended') audioCtx.resume();
   currentBars.fill(0); peakH.fill(0); peakV.fill(0);
-  audioEl.play().then(() => { playing = true; document.getElementById('playBtn').textContent = '[ pause ]'; cancelAnimationFrame(animFrame); startRise(); }).catch(() => {});
+  audioEl.play().then(() => {
+  playing = true;
+  document.getElementById('playBtn').textContent = '[ pause ]';
+  cancelAnimationFrame(animFrame);
+  startRise();
+  fetch('http://localhost:6969/now-playing', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      track: entry.title || entry.name,
+      artist: entry.artist || '',
+      album: entry.album || '',
+      elapsed: 0,
+      duration: audioEl.duration || 0
+    })
+  }).catch(() => {});
+}).catch(console.error)
 }
 function playIndex(idx) {
   const q = queues[activeQ];
@@ -747,10 +834,147 @@ function loadState() {
   } catch(e) {}
 }
 
+// ── loop mode (alt+y) ──
+function setLoopMode(mode) {
+  loopMode = mode;
+  const el = document.getElementById('loopIndicator');
+  if (mode === 'playlist') { el.textContent = '⟲ loop: playlist'; el.classList.add('show'); }
+  else if (mode === 'track') { el.textContent = '⟲ loop: track'; el.classList.add('show'); }
+  else { el.textContent = ''; el.classList.remove('show'); }
+}
+let altYPending = false, altYTimer = null;
+function handleAltY() {
+  if (altYPending) {
+    // second press landed within the window — this is a double-press
+    clearTimeout(altYTimer);
+    altYPending = false;
+    setLoopMode(loopMode === 'track' ? 'none' : 'track');
+  } else {
+    altYPending = true;
+    altYTimer = setTimeout(() => {
+      altYPending = false;
+      // no second press came — this was a single press
+      setLoopMode(loopMode === 'playlist' ? 'none' : 'playlist');
+    }, 350);
+  }
+}
+
 document.addEventListener('keydown', e => {
+  const cmdOpen = document.getElementById('cmdOverlay').classList.contains('show');
+  if ((e.ctrlKey || e.metaKey) && e.code === 'KeyY') {
+    e.preventDefault();
+    cmdOpen ? closeCmdPanel() : openCmdPanel();
+    return;
+  }
+  if (e.altKey && e.code === 'KeyY') {
+    e.preventDefault();
+    if (!cmdOpen) handleAltY();
+    return;
+  }
+  if (cmdOpen) return; // let the command panel's own listener handle nav/escape/typing
   if (e.code === 'Space' && e.target === document.body) { e.preventDefault(); togglePlay(); }
   if (e.code === 'ArrowLeft') seek(-10);
   if (e.code === 'ArrowRight') seek(10);
+});
+
+// ── command panel (ctrl+y) ──
+let cmdResults = [];
+let cmdSelIndex = -1;
+
+function openCmdPanel() {
+  const overlay = document.getElementById('cmdOverlay');
+  const input = document.getElementById('cmdInput');
+  overlay.classList.add('show');
+  input.value = '';
+  renderCmdResults('');
+  setTimeout(() => input.focus(), 10);
+}
+function closeCmdPanel() {
+  document.getElementById('cmdOverlay').classList.remove('show');
+  document.getElementById('cmdInput').blur();
+}
+document.getElementById('cmdOverlay').addEventListener('click', e => {
+  if (e.target === e.currentTarget) closeCmdPanel();
+});
+
+function fuzzyScore(query, text) {
+  query = query.toLowerCase(); text = text.toLowerCase();
+  let qi = 0, score = 0, lastIndex = -1;
+  for (let ti = 0; ti < text.length && qi < query.length; ti++) {
+    if (text[ti] === query[qi]) {
+      score += (lastIndex === ti - 1) ? 3 : 1;
+      lastIndex = ti; qi++;
+    }
+  }
+  if (qi < query.length) return -1;
+  if (text.startsWith(query)) score += 10;
+  return score;
+}
+
+function getAllTracksFlat() {
+  const out = [];
+  queues.forEach((q, qi) => {
+    q.tracks.forEach((t, ti) => {
+      out.push({ track: t, qi, ti, qname: q.name, name: t.title || t.name, artist: t.artist || '' });
+    });
+  });
+  return out;
+}
+
+function renderCmdResults(query) {
+  query = query.trim();
+  let list = getAllTracksFlat();
+  if (query) {
+    list = list
+      .map(item => ({ ...item, score: fuzzyScore(query, item.name + ' ' + item.artist) }))
+      .filter(item => item.score >= 0)
+      .sort((a, b) => b.score - a.score);
+  }
+  list = list.slice(0, 50);
+  cmdResults = list;
+  cmdSelIndex = list.length ? 0 : -1;
+
+  const ul = document.getElementById('cmdResults');
+  ul.innerHTML = '';
+  if (!list.length) {
+    const li = document.createElement('li');
+    li.className = 'cmdp-empty';
+    li.textContent = query ? 'no matches' : 'no tracks loaded';
+    ul.appendChild(li);
+    return;
+  }
+  list.forEach((item, i) => {
+    const li = document.createElement('li');
+    li.className = 'cmdp-item' + (i === cmdSelIndex ? ' sel' : '');
+    li.innerHTML = `<span class="tname dr">${item.name}</span><span class="tart">${item.artist}</span><span class="qbadge">${item.qname}</span>`;
+    li.onclick = () => jumpToCmdResult(i);
+    li.onmouseenter = () => { cmdSelIndex = i; updateCmdSel(); };
+    ul.appendChild(li);
+  });
+}
+
+function updateCmdSel() {
+  const items = document.querySelectorAll('#cmdResults .cmdp-item');
+  items.forEach((li, i) => li.classList.toggle('sel', i === cmdSelIndex));
+  const sel = items[cmdSelIndex];
+  if (sel) sel.scrollIntoView({ block: 'nearest' });
+}
+
+function jumpToCmdResult(i) {
+  const item = cmdResults[i];
+  if (!item) return;
+  if (item.qi !== activeQ) { activeQ = item.qi; renderTabs(); }
+  playIndex(item.ti);
+  closeCmdPanel();
+}
+
+const cmdInputEl = document.getElementById('cmdInput');
+cmdInputEl.addEventListener('input', () => renderCmdResults(cmdInputEl.value));
+cmdInputEl.addEventListener('keydown', e => {
+  if (e.key === 'Escape') { e.preventDefault(); closeCmdPanel(); }
+  else if (e.key === 'ArrowDown') { e.preventDefault(); if (cmdResults.length) { cmdSelIndex = (cmdSelIndex + 1) % cmdResults.length; updateCmdSel(); } }
+  else if (e.key === 'ArrowUp') { e.preventDefault(); if (cmdResults.length) { cmdSelIndex = (cmdSelIndex - 1 + cmdResults.length) % cmdResults.length; updateCmdSel(); } }
+  else if (e.key === 'Enter') { e.preventDefault(); if (cmdSelIndex >= 0) jumpToCmdResult(cmdSelIndex); }
 });
 
 loadState(); renderTabs(); renderTrackList(); updateBottomBar(); restoreFolders();
